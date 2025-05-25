@@ -17,4 +17,5 @@ kubectl get nodes
 ### Reference to Custom Kubeconfig file in non-default Path
 ```sh
 kubectl get nodes --kubeconfig "config"
+kubectl view config
 ```
