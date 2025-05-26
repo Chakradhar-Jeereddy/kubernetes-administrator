@@ -160,8 +160,101 @@
           - "20"
           - "google.com"
 ## EXPOSE
+  - It is only for documentation purpose to tell which port the application will listen to the person
+    running the container, so that he can publish the port using "-p"
+   - We can inpect the pod to find its port and then publish it.
+     kubectl describe pod <pod-name>|more
+    ```
+    Dockefile
+      FROM Ubuntu
+      RUN app-get install service
+      EXPOSE 9324
+      CMD ["service"]
+     ```
+ ## Exposing port at kubernetes level
+    ```
+    ports:
+      - containerPort: 8080
+    ```
+  ## Label and selectors
+   - Labels are key and values pairs attached to objects like pods
+   - Selectors are used to get objects based on labels
+   - Assigning labels to kubernetes objects
+   ```
+   kubectl get pods --show-label
+   kubectl get pods -l run=nginx
+   kubectl label pod nginx env=dev
+   kubectl get po --show-labels  (Assigning the labels)
+   kubectl label pod nginx env-
+   kubectl lavel pod nginx env=dev --dry-run=client -o yaml > nginx.yaml
+   ```
+ ## Replicasets
+   - For maintaining a stable set of pods running at any given time.
+   - Requirement to run three pods on nginx image at all times.
+   - To overcome manual scaling and fault tolerance
+   - In case of pod failure or crash, kubernetes will not automatically create it.
+   - In case of spike in workload, we need to manually launch new containers.
+   - Replicaset will overcome these challanges.
+   - It will have logic to recreate pods when needed.
+   ```
+   kubectl get replicasets
+   kubectl get rs
+   kubectl apply -f .\rs.yaml   kubectl scale rs/rs --replicas=2
+   https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+   kubectl get rs
+   kubectl get po --show-labels
+   kubectl scale rs/frontend --replicas=3
+   kubectl delete po/frontend-96tpm
+   kubectl get po #new one gets launched
+   kubectl scale rs/frontend --replicas=2
+   kubectl get rs
+   kubectl scale rs/frontend --replicas=0
+   kubectl delete rs/frontend
+   ```
+
+## Deployments
+  - Extensively used in production environment
+  - Wrapper on top of replicaset
+  - Overcomes the disadvantage of replica set.
+  - Challange 1:
+     - Maintains the current state of the running pod.
+     - Changes applied to replicaset will not apply to running pods untill these are restarted.
+     - Requirement is to run 3 pods with nginx at all time.
+     - Later you need higher version of nginx
+     - When we update pod template as part of replicaset, the existing pods are not updated.
+     - Eg: change image from niginx to "httpd:latest" (apache)
+     ```
+     kubectl describe rs/frontend
+     kubectl describe po/nginx-adad
+     kubectl apply -f rs.yaml (after changing the image to apache)
+     kubectl describe rs/frontend
+     kubectl get po/nginx
+     kubectl describe po/nginx  # changes wont get applied to replicaset
+     ```
+   - Challange 2:
+     - No builtin rollback Mechanism.
+     - Doesn't maintain revison/rollout history
+     - Replicasets lack rollback machanism for reverting to a previous configuration
+       in case of errors during an update.
+    - Challange 3:
+      - Label collision with replicaset selectors
+      - When replicaset's selector matches the label of existing pod that it didn't create,
+        it starts treating the pod as part of its managed pods. This can cause unintended concequences.
+        ```
+        eg:
+        kubectl run frontend --image=nginx
+        kubectl get po --show-labels
+        kubectl label po/frontend run-
+        kubectl label po/frontend tier=frontend
+        kubectl get rs
+        kubectl apply -f .\rs.yaml
+        kubectl get rs
+        kubectl get pods --show-label
+        kubectl delete rs/frontend
+        ```
    
-   - 
+   
+   
       
     
     
