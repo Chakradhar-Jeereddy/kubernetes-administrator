@@ -127,8 +127,8 @@ Usecases               Simple static        Dynamic workload with frequent chang
      Monitoring and metrics collection agents to collect metrics about nodes.
   - If one worker nodes goes down daemon set will not run the pod on the available nodes like the deployment.
   ## Node afinity
-  - Node selector: It uses a method of strict equality, where selectors must match with the label in the worker node.
-  - Node afinity is same as nodeselector, it is more flexible and more expenssive.
+  - nodeSelector: It uses a method of strict equality, where selectors must match with the label in the worker node.
+  - nodeAafinity is same as nodeSelector, it is more flexible and more expressive.
   Requirement: Run AppA pod on any node except micro.
   ```
   Operators in node afinity.
@@ -149,7 +149,7 @@ metadata:
   name: nginx
 spec:
   affinity:
-    nodeaffinity:
+    nodeAffinity:
       requirementDuringSchedulingIgnoreDuringExecution:
             nodeSelectionTerms:
               - matchingExpressions:
@@ -160,8 +160,60 @@ spec:
 containers:
   - name: nginx
     image: nginx
+---------------------------------------------------
+apiVersion: v1
+kind: Pod
+metadata:
+  name: chakra
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+       nodeSelectorTerms:
+       - matchExpressions:
+          - key: size
+            operator: DoesNotExist
+  containers:
+  - name: chakra
+    image: httpd
+--------------------------------------------------------------
+apiVersion: v1
+kind: Pod
+metadata:
+  name: chakra
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+       nodeSelectorTerms:
+       - matchExpressions:
+          - key: size
+            operator: Exists
+  containers:
+  - name: chakra
+    image: httpd
+------------------------------------------------------
+apiVersion: v1
+kind: Pod
+metadata:
+  name: chakra
+spec:
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 1
+        preference:
+          matchExpressions:
+          - key: size
+            operator: Exists
+  containers:
+  - name: chakra
+    image: httpd
+```
+
 ```
 - Also check assign pod to node documentation
+https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/
 ```
 
 
