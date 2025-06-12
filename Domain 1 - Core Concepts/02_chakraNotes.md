@@ -250,12 +250,12 @@ spec:
       memory: '250Mi'
 ```
 ## Priorityclass
- Pods can have priority
- Advantages of priority class
- Influences scheduling order:- Pods with high priority are placed ahead in scheduling queue.
+ - Pods can have priority
+ - Advantages of priority class
+ - Influences scheduling order:- Pods with high priority are placed ahead in scheduling queue.
                                The scheduler tries to schedule higher priority pods before lower-prioroty pods.
- Preemption: If a higher priority pods can't be scheduled due to insufficient resources, the scheduler can evict(preempt) lower-priority pods from the node to make room for higher priority pod.
- PriorityClass object can have an integer value smaller or equal to 1 billion.
+ - Preemption: If a higher priority pods can't be scheduled due to insufficient resources, the scheduler can evict(preempt) lower-priority pods from the node to make room for higher priority pod.
+ - PriorityClass object can have an integer value smaller or equal to 1 billion.
  ```
 Test case -
 Create higher and lower priority classes
