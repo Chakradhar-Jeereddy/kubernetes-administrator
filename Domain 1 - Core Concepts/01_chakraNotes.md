@@ -216,6 +216,7 @@
   - Extensively used in production environment
   - Wrapper on top of replicaset
   - Overcomes the disadvantage of replica set.
+  - Extends and enhances the functionality of replica set and adds new properties.
   - Challange 1:
      - Maintains the current state of the running pod.
      - Changes applied to replicaset will not apply to running pods untill these are restarted.
@@ -240,6 +241,7 @@
       - Label collision with replicaset selectors
       - When replicaset's selector matches the label of existing pod that it didn't create,
         it starts treating the pod as part of its managed pods. This can cause unintended concequences.
+      - The replicaset mistakenly considered the unrelated pod is part of its managed set.
         ```
         eg:
         kubectl run frontend --image=nginx
@@ -248,10 +250,62 @@
         kubectl label po/frontend tier=frontend
         kubectl get rs
         kubectl apply -f .\rs.yaml
-        kubectl get rs
+        kubectl get rs  (# the older pod also gets managed)
         kubectl get pods --show-label
-        kubectl delete rs/frontend
+        kubectl delete rs/frontend  
         ```
+     - Test cases
+       Rolling update: Update container image
+       Deployment will perform updates in rolling manner to ensure that your app is not down.
+       it deploys new version pods and then removes the old ones.
+       If we change the name of the deployment in yaml file, it will create a new replica set and starts managing that.
+       ```
+       eg:
+       kubectl apply -f deployment.yaml
+       kubectl get pods
+       kubectl get rs
+       kubectl apply -f deployment.yaml # changed the image from nginx to httpd
+       kubectl get po -w
+       It first deploys new pods with new configuration and then terminates the existing configuration.
+       #Note: Need to ensure there is enough resource head room (50%) for these type of releases.
+       ```
+
+       Rollout history and rollback
+       Deployment allows us to inspect the history of our deployments.
+       Allows us to undo the rollouts.
+       ```
+       eg:
+       kubectl create deployment --image=nginx
+       kubectl get deploy
+       kubectl get rs
+       kubectl get po
+       # Create a manifest file
+       kubectl create deployment nginx-deployment --image=nginx --replicas=2 --dry-run=client -o yaml > deploy.yaml
+       kubectl rollout history deployment nginx-deployment
+       kubeectl rollout history deploy/nginx-deployment --revision=1
+       kubectl set image deploy/nginx-deployment nginx=httpd
+       kubectl rollout history deploy/nginx
+       
+       deployment.apps/nginx
+       REVISION  CHANGE-CAUSE
+       1         <none>
+       2         <none>
+
+       kubectl get pods
+       kubectl get rs
+       kubectl describe rs/<name>
+       kubectl describe deploy/<name>
+       kubectl rollout undo deploy/<name> --to-revision=1
+       kubectl scale deploy/<name> --replicas=4
+       kubectl delete deploy/<name>
+       ```
+       
+       
+       
+  
+        
+
+        
    
    
    
