@@ -215,7 +215,129 @@ spec:
 - Also check assign pod to node documentation
 https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/
 ```
+## Resource and Limits
+ - Challange 1:
+   Two applications A and B deployed as pod/containters, one of the two may cosume more resources than expected and affect other pod in the node.
+ - Challange 2:
+   A Pod may require a certian amount of memory and compute to run properly.
+   A pod need 512MB of RAM and 2 core CPU to run optimally.
+ - Requirement:
+   Requests(minimum) and Limits(maximum) are two ways we can control the amount of resources that can be assigned to pod.
+   Requests: Minimum CPU/RAM a container is guarnteed to get. Pod is scheduled/placed on a node that has enough resources.
+   Limits: The max amount of CPU and Memory container is allowed to use.
+   If container exceeds the limit, CPU will be throttled and for high memory container/pod gets killed.
+ - Advantage:
+   Prevents resource stravation on node.
+   Ensures no single container consumes all resources on nodes.
+   Ensure fair resource allocation
+   Avoids over provisioning
+   Improves stability and performance of your applications.
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  name: chakra
+spec:
+  containers:
+  - name: chakra
+    image: httpd
+    resources:
+     requests: 
+      cpu: '0.1'
+      memory: '128Mi'
+     limits:
+      cpu: '0.5'
+      memory: '250Mi'
+```
+## Priorityclass
+ Pods can have priority
+ Advantages of priority class
+ Influences scheduling order:- Pods with high priority are placed ahead in scheduling queue.
+                               The scheduler tries to schedule higher priority pods before lower-prioroty pods.
+ Preemption: If a higher priority pods can't be scheduled due to insufficient resources, the scheduler can evict(preempt) lower-priority pods from the node to make room for higher priority pod.
+ PriorityClass object can have an integer value smaller or equal to 1 billion.
+ ```
+Test case -
+Create higher and lower priority classes
+And assign to pods and observe the eviction/preempt
 
+apiVersion: scheduling.k8s.io/v1
+description: high priority
+kind: PriorityClass
+metadata:
+  creationTimestamp: null
+  name: high
+preemptionPolicy: PreemptLowerPriority
+value: 1000
+
+apiVersion: scheduling.k8s.io/v1
+description: low priority
+kind: PriorityClass
+metadata:
+  creationTimestamp: null
+  name: low
+preemptionPolicy: PreemptLowerPriority
+value: 100
+
+kubectl get pc
+NAME                      VALUE        GLOBAL-DEFAULT   AGE     PREEMPTIONPOLICY
+high                      1000         false            2m36s   PreemptLowerPriority
+low                       100          false            20s     PreemptLowerPriority
+system-cluster-critical   2000000000   false            44h     PreemptLowerPriority
+system-node-critical      2000001000   false            44h     PreemptLowerPriority
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod1
+spec: 
+  priorityClassName: low 
+  containers:
+  - name: pod1
+    image: httpd
+    resources:
+     requests: 
+      cpu: '0.1'
+      memory: '128Mi'
+     limits:
+      cpu: '0.5'
+      memory: '250Mi'
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod2
+spec: 
+  priorityClassName: high 
+  containers:
+  - name: pod2
+    image: httpd
+    resources:
+     requests: 
+      cpu: '0.1'
+      memory: '128Mi'
+     limits:
+      cpu: '0.5'
+      memory: '250Mi'
+
+Result:
+C:\Users\chakr>kubectl get po -w
+NAME   READY   STATUS    RESTARTS   AGE
+pod1   1/1     Running   0          21s
+pod2   0/1     Pending   0          0s
+pod1   1/1     Running   0          25s
+pod1   1/1     Terminating   0          25s
+pod2   0/1     Pending       0          0s
+pod1   1/1     Terminating   0          25s
+pod1   0/1     Completed     0          26s
+pod2   0/1     Pending       0          1s
+pod2   0/1     ContainerCreating   0          1s
+pod1   0/1     Completed           0          27s
+pod1   0/1     Completed           0          27s
+pod2   1/1     Running             0          3s
+```
+   
+   
 
 
 
