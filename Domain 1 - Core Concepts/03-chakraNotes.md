@@ -119,8 +119,58 @@ kubectl get pods -n ingress-nginx
 kubectl get service -n ingress-nginx
 ```
 Verify if a new load balancer is created in Digital Ocean.
-     
-     
+
+
+## Helm charts:
+- Its a package manager
+- Install helm client, release v3.7.0 -> windows ADM
+- use the website artifacthub.io to find helm charts.
+- Use install to check install options and templates to check what gets installed.
+- Firt download repo
+- check the template
+- Install chats
+```
+helm commands
+helm list
+helm repo list
+helm search repo bitnami
+helm search hub nginx
+helm template bitnami/nginx > nginx.yaml
+helm template bitnami/nginx -n > nginx.yaml
+helm uninstall my-nginx
+```
+
+## Namespace
+- It provides a mechanism for isolating group of resources within a single cluster.
+- Single cluster:
+      Namespace1      Namespace2
+- kubectl get namespace
+NAME              STATUS   AGE
+default           Active   2d7h  (objects gets created under this when no namespace is mentioned)
+kube-node-lease   Active   2d7h
+kube-public       Active   2d7h  (Available for all users)
+kube-system       Active   2d7h  (Contains internal pods, should not be touched)
+
+kubectl get configmaps --all-namespaces
+
+## Service accounts
+- There are two types of accounts
+- User accounts (For humans)
+- Service Accounts (For applications)
+
+# Credentials are in config file
+- Types of credentials
+   - Token
+   - Certificate
+   - /var/local/
+- Hummans will use user accounts to connect to cluster.
+- Pods/Applications will use service accounts to connect to cluster.
+```
+kubectl get serviceaccounts
+kubectl get sa
+```
+- A serviceaccount "default" is assigned to all pods used by pods to authenticate with cluster and perform operations.
+- 
 
 
 
